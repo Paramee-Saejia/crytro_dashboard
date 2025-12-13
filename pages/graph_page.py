@@ -1,4 +1,8 @@
 import tkinter as tk
+import queue
+from queues.orderbook_queue import orderbook_queue
+from data.socket_client import BinanceOrderBookSocket
+
 
 
 class HeaderPanel(tk.Frame):
@@ -35,6 +39,9 @@ class HeaderPanel(tk.Frame):
             font=("Segoe UI", 16, "bold")
         )
         self.price_lbl.pack(side="right")
+
+
+
 
     def set_title(self, symbol):
         self.title_lbl.config(text=f"{symbol} / THB")
@@ -205,15 +212,56 @@ class GraphPage(tk.Frame):
         self.volume_panel = VolumePanel(body)
         self.volume_panel.grid(row=1, column=1, sticky="nsew")
 
+        self._ob_socket = None
+        self.after(100, self._poll_orderbook)
         self.set_symbol(self.symbol)
 
+
+        self.set_symbol(self.symbol)
+        
+        self._ob_socket = None
+        self.after(100, self._poll_orderbook)
+
+        self._ob_socket = None
+        self.after(100, self._poll_orderbook)
+        self.set_symbol(self.symbol)
+
+
     def set_symbol(self, symbol):
-        self.symbol = symbol
+        self.symbol = symbol.upper() 
         self.header.set_title(self.symbol)
         self.header.set_price_text("Loading...", color="white")
+        self._start_orderbook_stream()
+
 
     def set_price(self, price_text, updown_color=None):
         self.header.set_price_text(price_text, color=updown_color)
 
     def render_orderbook(self, bids, asks):
         self.orderbook_panel.render(bids, asks)
+
+    def _start_orderbook_stream(self):
+        # symbol send to binance in lower case
+        stream_symbol = self.symbol.lower()
+        print("Start OB stream:", stream_symbol)
+        # draft ver
+        self._ob_socket = BinanceOrderBookSocket(stream_symbol, levels=10, interval_ms=100)
+        self._ob_socket.start()
+
+    def _poll_orderbook(self):
+        try:
+            while True:
+                sym, bids, asks = orderbook_queue.get_nowait()
+                if sym == self.symbol:
+                    self.orderbook_panel.render(bids, asks)
+        except queue.Empty:
+            pass
+
+        self.after(100, self._poll_orderbook)
+
+    def update_orderbook(self, symbol, bids, asks):
+        if symbol == self.symbol:
+            self.orderbook_panel.render(bids, asks)
+
+
+

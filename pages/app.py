@@ -8,6 +8,9 @@ from pages.main_page import MainPage
 from data.price_service import PriceService
 from queues.price_queue import price_queue
 
+from queues.orderbook_queue import orderbook_queue
+from data.orderbook_service import OrderBookService
+from data.data_store import market_data
 
 class App(tk.Tk):
     def __init__(self):
@@ -30,8 +33,9 @@ class App(tk.Tk):
 
         self.price_service = PriceService(["btcusdt", "ethusdt", "bnbusdt"])
         self.price_service.start()
-
         self.after(100, self._poll_price_queue)
+
+
 
     def show_page(self, name):
         self.pages[name].tkraise()
@@ -48,6 +52,9 @@ class App(tk.Tk):
             pass
 
         self.after(100, self._poll_price_queue)
+
+
+
 
 
 if __name__ == "__main__":
