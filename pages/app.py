@@ -1,7 +1,12 @@
 import tkinter as tk
-from welcome_page import WelcomePage
-from graph_page import GraphPage
-from main_page import MainPage
+import queue
+
+from pages.welcome_page import WelcomePage
+from pages.graph_page import GraphPage
+from pages.main_page import MainPage
+
+from data.price_service import PriceService
+from queues.price_queue import price_queue
 
 
 class App(tk.Tk):
@@ -16,7 +21,6 @@ class App(tk.Tk):
         self.container.pack(fill="both", expand=True)
 
         self.pages = {}
-
         for Page in (WelcomePage, MainPage, GraphPage):
             page = Page(self.container, self)
             self.pages[Page.__name__] = page
@@ -24,10 +28,29 @@ class App(tk.Tk):
 
         self.show_page("WelcomePage")
 
+        self.price_service = PriceService(["btcusdt", "ethusdt", "bnbusdt"])
+        self.price_service.start()
+
+        self.after(100, self._poll_price_queue)
+
     def show_page(self, name):
         self.pages[name].tkraise()
+
+    def _poll_price_queue(self):
+        main_page = self.pages.get("MainPage")
+
+        try:
+            while True:
+                sym, price = price_queue.get_nowait()
+                if main_page and hasattr(main_page, "update_price"):
+                    main_page.update_price(sym, price)
+        except queue.Empty:
+            pass
+
+        self.after(100, self._poll_price_queue)
 
 
 if __name__ == "__main__":
     app = App()
     app.mainloop()
+

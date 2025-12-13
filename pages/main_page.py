@@ -1,10 +1,14 @@
 import tkinter as tk
+from pathlib import Path
 from PIL import Image, ImageTk
 
-CRYPTO_ICON_PATHS = {
-    "BTC": r"images\icon_Cryptro\bitcoin.png",
-    "ETH": r"images\icon_Cryptro\eth.png",
-    "USTD": r"images\icon_Cryptro\USTD.png"
+from data.data_store import market_data
+
+
+CRYPTO_ICON_FILES = {
+    "BTCUSDT": r"images\icon_Cryptro\bitcoin.png",
+    "ETHUSDT": r"images\icon_Cryptro\eth.png",
+    "BNBUSDT": r"images\icon_Cryptro\bnb.png",
 }
 
 
@@ -13,47 +17,83 @@ class MainPage(tk.Frame):
         super().__init__(parent, bg="#1b1b2f")
         self.controller = controller
 
-        self.icon_images = {}
-        self.load_icons()
+        self._root_dir = Path(__file__).resolve().parents[1]
+        self._icons = {}
+        self._load_icons()
 
         tk.Label(
             self,
             text="Main Page",
             bg="#1b1b2f",
             fg="white",
-            font=("Arial", 16)
-        ).pack(pady=20)
+            font=("Segoe UI", 16, "bold"),
+        ).pack(pady=(16, 10))
 
-        tk.Button(
-            self,
-            text="Go to Graph",
-            command=lambda: self.controller.show_page("GraphPage")
-        ).pack(pady=10)
+        self.rows = {}
+        for sym in ("BTCUSDT", "ETHUSDT", "BNBUSDT"):
+            self._add_row(sym)
 
-        self.create_crypto_card("BTC", "5 seconds ago", "↓2.64%", "$12,729", "$500B", "$30B")
-        self.create_crypto_card("ETH", "5 seconds ago", "↓1.23%", "$1,234", "$200B", "$10B")
-        self.create_crypto_card("USTD", "↑0.56%", "$300", "$50B", "$2B", "$2B")
+        self.refresh_prices()
 
-    def load_icons(self):
-        for symbol, path in CRYPTO_ICON_PATHS.items():
-            img = Image.open(path).resize((30, 30), Image.LANCZOS)
-            self.icon_images[symbol] = img
+    def _load_icons(self):
+        for sym, rel in CRYPTO_ICON_FILES.items():
+            path = self._root_dir / rel
+            if path.exists():
+                img = Image.open(path).resize((28, 28), Image.LANCZOS)
+                self._icons[sym] = ImageTk.PhotoImage(img, master=self)
+            else:
+                self._icons[sym] = None
 
-    def create_crypto_card(self, crypto, updated, change, price, market_cap, volume):
-        card = tk.Frame(self, bg="#2a2a40", padx=10, pady=10)
-        card.pack(pady=10, fill="x", padx=20)
+    def _add_row(self, symbol):
+        row = tk.Frame(self, bg="#2a2a40", padx=12, pady=10)
+        row.pack(fill="x", padx=20, pady=8)
 
-        pil_img = self.icon_images.get(crypto)
-        if pil_img:
-            photo = ImageTk.PhotoImage(pil_img, master=self)
-            lbl = tk.Label(card, image=photo, bg="#2a2a40")
-            lbl.image = photo
-            lbl.grid(row=1, column=0, padx=5)
+        icon = self._icons.get(symbol)
+        if icon:
+            lbl_icon = tk.Label(row, image=icon, bg="#2a2a40")
+            lbl_icon.image = icon
+            lbl_icon.pack(side="left", padx=(0, 10))
 
-        headers = ["Crypto", "Updated", "Change", "Price", "Market Cap", "Volume"]
-        for i, h in enumerate(headers):
-            tk.Label(card, text=h, bg="#2a2a40", fg="white").grid(row=0, column=i+1)
+        tk.Label(
+            row,
+            text=symbol,
+            bg="#2a2a40",
+            fg="white",
+            font=("Segoe UI", 12, "bold"),
+        ).pack(side="left")
 
-        values = [crypto, updated, change, price, market_cap, volume]
-        for i, v in enumerate(values):
-            tk.Label(card, text=v, bg="#2a2a40", fg="white").grid(row=1, column=i+1)
+        btn = tk.Button(
+            row,
+            text="View",
+            command=lambda s=symbol: self._open_graph(s),
+        )
+        btn.pack(side="right")
+
+        price_lbl = tk.Label(
+            row,
+            text="Loading...",
+            bg="#2a2a40",
+            fg="white",
+            font=("Segoe UI", 12),
+        )
+        price_lbl.pack(side="right", padx=(10, 0))
+
+        self.rows[symbol] = price_lbl
+
+    def _open_graph(self, symbol):
+        page = self.controller.pages.get("GraphPage")
+        if page and hasattr(page, "set_symbol"):
+            page.set_symbol(symbol)
+        self.controller.show_page("GraphPage")
+
+    def refresh_prices(self):
+        for sym, lbl in self.rows.items():
+            price = market_data.prices.get(sym)
+            if price is not None:
+                lbl.config(text=f"{price:,.2f}")
+
+    def update_price(self, symbol, price):
+        market_data.prices[symbol] = price
+        lbl = self.rows.get(symbol)
+        if lbl is not None:
+            lbl.config(text=f"{price:,.2f}")

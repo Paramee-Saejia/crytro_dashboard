@@ -3,3 +3,4 @@ class MarketData:
         self.prices = {}
 
 market_data = MarketData()
+

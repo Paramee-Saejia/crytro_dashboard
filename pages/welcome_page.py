@@ -32,4 +32,3 @@ class WelcomePage(tk.Frame):
             command=lambda: self.controller.show_page("MainPage")
         ).place(relx=0.5, rely=0.6, anchor="center")
 
-
