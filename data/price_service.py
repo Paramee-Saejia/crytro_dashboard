@@ -12,5 +12,11 @@ class PriceService:
             sock.start()
             self.sockets.append(sock)
 
-
-
+    def stop(self):
+        for s in self.sockets:
+            if hasattr(s, "stop"):
+                try:
+                    s.stop()
+                except Exception:
+                    pass
+        self.sockets = []

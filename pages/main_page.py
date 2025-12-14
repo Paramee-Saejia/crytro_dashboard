@@ -29,7 +29,7 @@ class MainPage(tk.Frame):
 
         self._build_ui()
 
-        watchlist = self.controller.config.get(
+        watchlist = self.controller.app_config.get(
             "watchlist",
             ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT"],
         )
@@ -59,15 +59,12 @@ class MainPage(tk.Frame):
         self.table = tk.Frame(self.card, bg="#151823")
         self.table.pack(fill="both", expand=True, padx=18, pady=16)
 
-        # 5 columns: crypto / updated / change / price / view
-        # ให้ minsize ช่วยล็อคแนว ไม่ให้แกว่ง
         self.table.grid_columnconfigure(0, weight=4, minsize=360)
         self.table.grid_columnconfigure(1, weight=2, minsize=160)
         self.table.grid_columnconfigure(2, weight=2, minsize=160)
         self.table.grid_columnconfigure(3, weight=2, minsize=200)
         self.table.grid_columnconfigure(4, weight=1, minsize=120)
 
-        # header (อยู่ใน grid เดียวกับ rows)
         headers = [
             ("Cryptocurrency", 0, "w"),
             ("Updated", 1, "w"),
@@ -90,7 +87,6 @@ class MainPage(tk.Frame):
 
         self._next_row = 2
 
-        # spacer ให้ card ดูเต็มจอ แต่ไม่ยืดแถวเพี้ยน
         self.table.grid_rowconfigure(999, weight=1)
         tk.Frame(self.table, bg="#151823").grid(row=999, column=0, columnspan=5, sticky="nsew")
 
@@ -112,7 +108,6 @@ class MainPage(tk.Frame):
         r = self._next_row
         self._next_row += 1
 
-        # ----- Column 0: crypto (icon + text) -----
         c0 = self._cell(r, 0, sticky="ew")
         c0_in = tk.Frame(c0, bg="#1b1f2e")
         c0_in.pack(fill="x", expand=True, padx=16, pady=18)
@@ -135,7 +130,6 @@ class MainPage(tk.Frame):
             font=("Segoe UI", 12, "bold"),
         ).pack(side="left", padx=(10, 0))
 
-        # ----- Column 1: updated -----
         c1 = self._cell(r, 1, sticky="ew")
         updated_lbl = tk.Label(
             c1,
@@ -146,7 +140,6 @@ class MainPage(tk.Frame):
         )
         updated_lbl.pack(anchor="w", padx=16, pady=18)
 
-        # ----- Column 2: change -----
         c2 = self._cell(r, 2, sticky="ew")
         change_lbl = tk.Label(
             c2,
@@ -157,7 +150,6 @@ class MainPage(tk.Frame):
         )
         change_lbl.pack(anchor="w", padx=16, pady=18)
 
-        # ----- Column 3: price (right align) -----
         c3 = self._cell(r, 3, sticky="ew")
         price_lbl = tk.Label(
             c3,
@@ -168,7 +160,6 @@ class MainPage(tk.Frame):
         )
         price_lbl.pack(anchor="e", padx=16, pady=18)
 
-        # ----- Column 4: view button (right align) -----
         c4 = self._cell(r, 4, sticky="ew")
         btn = tk.Button(
             c4,
