@@ -156,10 +156,21 @@ dash_board/
 ----------------------------------
 (Limitation)
 
-Volume Panel 
+*Volume Panel**
 - The Volume panel UI is implemented, but buy/sell volume values are not fully accurate yet.
-- In some cases, Buy Volume may stay at 0 or values may look identical across assets.
+- In some cases, **Buy Volume may stay at 0**, or values may look **identical across assets**.
 - This is a known limitation in the current version.
+
+*Chart Axes (X / Y)**
+- **X-axis (time) labeling is currently not rendered correctly** — in some cases it may show **“0” for all ticks** due to timestamp conversion/formatting issues (e.g., raw epoch values not being converted to readable datetime, or tick labels being overwritten).
+- **Y-axis number formatting is not optimized yet** — large values may not display well (e.g., missing **thousand/ten-thousand separators** like `1,000` / `10,000`), making the scale harder to read.
+
+*Why charts may look similar (but are not the same chart)**
+- Charts can appear similar because they are plotted using the **same time window, interval, and number of candles**, so the overall shape may look alike at a glance.
+- If the data source returns **limited/partial history**, or if fallback/default data is used during errors, multiple assets may temporarily show **similar-looking patterns**.
+- Even when the visuals look close, the underlying dataset is still requested per asset (e.g., BTC vs ETH vs SOL), so they are **not the same chart**, just **similar in shape under current constraints**.
+
+--------------
 
 ## How to Run
 
