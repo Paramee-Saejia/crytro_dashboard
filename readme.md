@@ -106,7 +106,7 @@ dash_board/
       ├─ bnb.png
       └─ xrp.png
 ```
-
+</details>
 
 ## What Each File Does (Quick Guide)
 
