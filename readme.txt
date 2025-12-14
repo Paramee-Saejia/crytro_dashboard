@@ -172,4 +172,6 @@ pip install -r requirements.txt
 python app.py
 
 
-
+Thank you for every professor so much for teaching comprog1
+i am very happy for learning comprog1 with you.
+from Paramee Saejia 6710545709.
