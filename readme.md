@@ -67,7 +67,7 @@ This is a desktop crypto dashboard featuring:
 ---
 
 <details>
-<summary><b>Project Structure (click to expand)</b></summary>
+<summary><h3>Project Structure (click to expand)</h3></summary>
 
 ```text
 dash_board/
