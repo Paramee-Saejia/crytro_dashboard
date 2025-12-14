@@ -22,12 +22,11 @@ class GraphPage(tk.Frame):
         self.base, self.quote = self._split_symbol(self.symbol)
 
         self._last_price = None
-        self._ob_sockets = {}  # symbol_lc -> BinanceOrderBookSocket
+        self._ob_sockets = {}
 
         self.header = HeaderPanel(self, on_back=lambda: self.controller.show_page("MainPage"))
         self.header.pack(fill="x", padx=24, pady=(16, 8))
 
-        # toggle buttons row (ใต้ header นิดเดียว)
         self.toggle_bar = tk.Frame(self, bg="#0f111a")
         self.toggle_bar.pack(fill="x", padx=24, pady=(0, 8))
 
@@ -37,9 +36,14 @@ class GraphPage(tk.Frame):
 
         for b in (self._btn_stats, self._btn_ob, self._btn_vol):
             b.configure(
-                bg="#151823", fg="white", bd=0,
-                activebackground="#1b1f2e", activeforeground="white",
-                padx=14, pady=6, font=("Segoe UI", 10, "bold"),
+                bg="#151823",
+                fg="white",
+                bd=0,
+                activebackground="#1b1f2e",
+                activeforeground="white",
+                padx=14,
+                pady=6,
+                font=("Segoe UI", 10, "bold"),
                 cursor="hand2",
             )
             b.pack(side="left", padx=(0, 10))
@@ -64,7 +68,6 @@ class GraphPage(tk.Frame):
         self.volume_panel = VolumePanel(body)
         self.volume_panel.grid(row=1, column=1, sticky="nsew")
 
-        # apply saved panel visibility
         self._apply_panel_visibility_from_settings()
 
         self.set_symbol(self.symbol)
@@ -80,7 +83,6 @@ class GraphPage(tk.Frame):
                 return s[:-len(q)], q
         return s, "USDT"
 
-    # ---------------- toggles ----------------
     def _get_panels_cfg(self):
         cfg = self.controller.app_config.setdefault("panels", {"stats": True, "orderbook": True, "volume": True})
         cfg.setdefault("stats", True)
@@ -116,7 +118,6 @@ class GraphPage(tk.Frame):
         self._set_panel_visible(name, cfg[name])
         self._update_toggle_button_styles()
 
-        # save immediately (กันไฟดับ/ปิดแอป)
         try:
             self.controller.settings_store.data = self.controller.app_config
             self.controller.settings_store.save()
@@ -133,7 +134,6 @@ class GraphPage(tk.Frame):
         style(self._btn_ob, cfg.get("orderbook", True))
         style(self._btn_vol, cfg.get("volume", True))
 
-    # ---------------- symbol & streams ----------------
     def set_symbol(self, symbol):
         self.symbol = symbol.upper()
         self.base, self.quote = self._split_symbol(self.symbol)
@@ -154,7 +154,6 @@ class GraphPage(tk.Frame):
         sock.start()
         self._ob_sockets[stream_symbol] = sock
 
-    # ให้ App เรียกอัปเดตราคาแบบ realtime (ไม่ต้องรอ refresh)
     def on_price(self, symbol, price):
         if symbol.upper() != self.symbol:
             return
@@ -198,6 +197,14 @@ class GraphPage(tk.Frame):
 
         self.after(100, self._poll_orderbook)
 
+    def _to_float(self, v, default=0.0):
+        try:
+            if v is None:
+                return default
+            return float(v)
+        except Exception:
+            return default
+
     def _fmt_compact(self, x):
         try:
             x = float(x)
@@ -214,27 +221,50 @@ class GraphPage(tk.Frame):
         return f"{x:,.2f}"
 
     def _refresh_ticker_stats(self):
-        url = f"https://api.binance.com/api/v3/ticker/24hr?symbol={self.symbol}"
+        url = "https://api.binance.com/api/v3/ticker/24hr"
 
         try:
-            r = requests.get(url, timeout=1.5)
+            r = requests.get(url, params={"symbol": self.symbol}, timeout=1.5)
             r.raise_for_status()
             data = r.json()
 
-            change_pct = float(data.get("priceChangePercent", 0.0))
+            change_pct = self._to_float(data.get("priceChangePercent"), 0.0)
             high = data.get("highPrice")
             low = data.get("lowPrice")
-            quote_vol = data.get("quoteVolume")
+
+            quote_vol = self._to_float(data.get("quoteVolume"), 0.0)
+
+            buy_quote_direct = self._to_float(data.get("takerBuyQuoteVolume"), 0.0)
+            buy_base = self._to_float(data.get("takerBuyBaseVolume"), 0.0)
+            wavg = self._to_float(data.get("weightedAvgPrice"), 0.0)
+
+            buy_quote = buy_quote_direct
+            if buy_quote <= 0 and buy_base > 0 and wavg > 0:
+                buy_quote = buy_base * wavg
+
+            if buy_quote < 0:
+                buy_quote = 0.0
+
+            sell_quote = quote_vol - buy_quote
+            if sell_quote < 0:
+                sell_quote = 0.0
+
+            ratio = (buy_quote / sell_quote) if sell_quote > 0 else 0.0
 
             change_text = f"{change_pct:+.2f}%"
-            high_text = f"{self.quote} {float(high):,.2f}" if high is not None else "-"
-            low_text = f"{self.quote} {float(low):,.2f}" if low is not None else "-"
+            high_text = f"{self.quote} {self._to_float(high, 0.0):,.2f}" if high is not None else "-"
+            low_text = f"{self.quote} {self._to_float(low, 0.0):,.2f}" if low is not None else "-"
             vol_text = f"{self._fmt_compact(quote_vol)} {self.quote}"
-
             self.stats_panel.set_ticker(change_text, high_text, low_text, vol_text)
+
+            buy_text = f"{self._fmt_compact(buy_quote)} {self.quote}"
+            sell_text = f"{self._fmt_compact(sell_quote)} {self.quote}"
+            ratio_text = "-" if (buy_quote == 0 and sell_quote == 0) else f"{ratio:.2f}"
+            self.volume_panel.set_values(buy_text, sell_text, ratio_text)
 
         except Exception:
             self.stats_panel.set_ticker("-", "-", "-", "-")
+            self.volume_panel.set_values("-", "-", "-")
 
         self.after(2000, self._refresh_ticker_stats)
 
@@ -244,11 +274,9 @@ class GraphPage(tk.Frame):
 
         color = "#3ddc97" if pct > 0 else "#ff5c5c" if pct < 0 else "white"
         sign_pct = f"{pct:+.2f}%"
-        # HeaderPanel ของคุณใช้ set_price() ไม่ใช่ set_price_text()
         self.header.set_price(f"{self.quote} {close_price:,.2f}  ({sign_pct})", color=color)
 
     def on_close(self):
-        # stop orderbook sockets started by this page
         for s in list(self._ob_sockets.values()):
             if hasattr(s, "stop"):
                 try:
