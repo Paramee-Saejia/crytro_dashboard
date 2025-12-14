@@ -66,8 +66,6 @@ This is a desktop crypto dashboard featuring:
 - **Pillow** (icons)
 ---
 
-<details>
-<summary><h3>Project Structure (click to expand)</h3></summary>
 
 ```text
 dash_board/
@@ -106,7 +104,7 @@ dash_board/
       ├─ bnb.png
       └─ xrp.png
 ```
-</details>
+
 
 ## What Each File Does (Quick Guide)
 
