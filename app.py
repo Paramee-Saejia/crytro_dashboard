@@ -2,8 +2,8 @@ import tkinter as tk
 import queue
 
 from pages.welcome_page import WelcomePage
-from pages.graph_page import GraphPage
 from pages.main_page import MainPage
+from pages.graph_page import GraphPage
 
 from data.price_service import PriceService
 from queues.price_queue import price_queue

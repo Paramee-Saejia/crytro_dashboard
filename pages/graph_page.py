@@ -7,7 +7,7 @@ from queues.orderbook_queue import orderbook_queue
 from data.socket_client import BinanceOrderBookSocket
 
 from ui.header_panel import HeaderPanel
-from ui.chart_panel import ChartPanel
+from ui.candlestick_chart import CandlestickChart
 from ui.stats_panel import StatsPanel
 from ui.volume_panel import VolumePanel
 from ui.orderbook_panel import OrderBookPanel
@@ -35,8 +35,10 @@ class GraphPage(tk.Frame):
         body.rowconfigure(0, weight=4, minsize=360)
         body.rowconfigure(1, weight=2)
 
-        self.chart_panel = ChartPanel(body)
+        self.chart_panel = CandlestickChart(body, on_hover=self._on_chart_hover)
+
         self.chart_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 12), pady=(0, 12))
+
 
         self.stats_panel = StatsPanel(body)
         self.stats_panel.grid(row=0, column=1, sticky="nsew", pady=(0, 12))
@@ -67,6 +69,8 @@ class GraphPage(tk.Frame):
 
         self.header.set_pair(self.base, self.quote)
         self.header.set_price("Loading...", color="white")
+        self.chart_panel.set_symbol(self.symbol, interval="1m")
+
 
         self._last_price = None
         self._ensure_orderbook_stream()
@@ -156,6 +160,15 @@ class GraphPage(tk.Frame):
             self.stats_panel.set_ticker("-", "-", "-", "-")
 
         self.after(2000, self._refresh_ticker_stats)
+
+    def _on_chart_hover(self, close_price: float, pct: float):
+        if close_price is None:
+            return
+
+        color = "#3ddc97" if pct > 0 else "#ff5c5c" if pct < 0 else "white"
+        sign_pct = f"{pct:+.2f}%"
+        self.header.set_price_text(f"{self.quote} {close_price:,.2f}  ({sign_pct})", color=color)
+
 
 
 
