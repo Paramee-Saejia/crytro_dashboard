@@ -8,7 +8,9 @@ from data.data_store import market_data
 CRYPTO_ICON_FILES = {
     "BTCUSDT": r"images\icon_Cryptro\bitcoin.png",
     "ETHUSDT": r"images\icon_Cryptro\eth.png",
+    "SOLUSDT": r"images\icon_Cryptro\sol.png",
     "BNBUSDT": r"images\icon_Cryptro\bnb.png",
+    "XRPUSDT": r"images\icon_Cryptro\xrp.png",
 }
 
 
@@ -30,8 +32,14 @@ class MainPage(tk.Frame):
         ).pack(pady=(16, 10))
 
         self.rows = {}
-        for sym in ("BTCUSDT", "ETHUSDT", "BNBUSDT"):
-            self._add_row(sym)
+
+        watchlist = self.controller.config.get(
+            "watchlist",
+            ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT"],
+        )
+
+        for sym in watchlist:
+            self._add_row(sym.upper())
 
         self.refresh_prices()
 
@@ -93,6 +101,7 @@ class MainPage(tk.Frame):
                 lbl.config(text=f"{price:,.2f}")
 
     def update_price(self, symbol, price):
+        symbol = symbol.upper()
         market_data.prices[symbol] = price
         lbl = self.rows.get(symbol)
         if lbl is not None:

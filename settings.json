@@ -1,0 +1,14 @@
+{
+  "watchlist": [
+    "BTCUSDT",
+    "ETHUSDT",
+    "SOLUSDT",
+    "BNBUSDT",
+    "XRPUSDT"
+  ],
+  "panels": {
+    "stats": true,
+    "orderbook": true,
+    "volume": true
+  }
+}
