@@ -64,8 +64,8 @@ This is a desktop crypto dashboard featuring:
 - **pandas** (kline data parsing)
 - **matplotlib + mplfinance** (candlestick chart)
 - **Pillow** (icons)
-
 ---
+
 <details>
 <summary><b>Project Structure (click to expand)</b></summary>
 
@@ -86,8 +86,7 @@ dash_board/
 │  ├─ socket_client.py
 │  ├─ price_service.py
 │  ├─ orderbook_service.py
-│  ├─ kline_client.py
-│  └─ orderbook_service.py
+│  └─ kline_client.py
 ├─ queues/
 │  ├─ __init__.py
 │  ├─ price_queue.py
@@ -106,6 +105,7 @@ dash_board/
       ├─ sol.png
       ├─ bnb.png
       └─ xrp.png
+```
 
 
 ## What Each File Does (Quick Guide)
