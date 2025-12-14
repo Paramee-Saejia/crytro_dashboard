@@ -154,6 +154,12 @@ dash_board/
   Volume panel UI. (Data logic depends on the selected approach and may be limited in the current version.)
 
 ----------------------------------
+(Limitation)
+
+Volume Panel 
+- The Volume panel UI is implemented, but buy/sell volume values are not fully accurate yet.
+- In some cases, Buy Volume may stay at 0 or values may look identical across assets.
+- This is a known limitation in the current version.
 
 ## How to Run
 
