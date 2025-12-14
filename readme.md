@@ -66,7 +66,10 @@ This is a desktop crypto dashboard featuring:
 - **Pillow** (icons)
 
 ---
+<details>
+<summary><b>Project Structure (click to expand)</b></summary>
 
+```text
 dash_board/
 ├─ app.py
 ├─ requirements.txt
@@ -83,7 +86,8 @@ dash_board/
 │  ├─ socket_client.py
 │  ├─ price_service.py
 │  ├─ orderbook_service.py
-│  └─ kline_client.py
+│  ├─ kline_client.py
+│  └─ orderbook_service.py
 ├─ queues/
 │  ├─ __init__.py
 │  ├─ price_queue.py
